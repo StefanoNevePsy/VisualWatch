@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.visualwatch.timer.ui.theme.TimerColors
 
 @Composable
@@ -30,19 +32,22 @@ fun RadialFadeAnimation(
             center = center
         )
 
-        // Final sector ring
+        // Final sector ring: subtle dashed circle
         if (finalSectorRatio > 0f) {
             val finalRadius = maxRadius * finalSectorRatio
             drawCircle(
-                color = TimerColors.FinalSectorDark.copy(alpha = 0.2f),
+                color = TimerColors.FinalSectorDark.copy(alpha = 0.15f),
                 radius = finalRadius,
                 center = center
             )
             drawCircle(
-                color = TimerColors.FinalSector.copy(alpha = 0.4f),
+                color = TimerColors.FinalSector.copy(alpha = 0.35f),
                 radius = finalRadius,
                 center = center,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f)
+                style = Stroke(
+                    width = 1.5f,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 4f), 0f)
+                )
             )
         }
 
@@ -73,7 +78,7 @@ fun RadialFadeAnimation(
             color = Color(0xFF444444),
             radius = maxRadius,
             center = center,
-            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f)
+            style = Stroke(width = 2f)
         )
     }
 }

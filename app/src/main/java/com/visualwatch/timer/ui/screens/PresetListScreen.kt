@@ -1,8 +1,8 @@
 package com.visualwatch.timer.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -24,8 +26,6 @@ import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
-import androidx.wear.compose.material.Card
-import androidx.wear.compose.material.CardDefaults
 import androidx.wear.compose.material.Text
 import com.visualwatch.timer.data.TimerPreset
 import com.visualwatch.timer.ui.components.formatTime
@@ -80,7 +80,7 @@ fun PresetListScreen(
 
         // Preset items
         items(presets, key = { it.id }) { preset ->
-            PresetCard(
+            PresetItem(
                 preset = preset,
                 onClick = { onPresetSelected(preset) },
                 onLongClick = { onEditPreset(preset) }
@@ -104,49 +104,45 @@ fun PresetListScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PresetCard(
+private fun PresetItem(
     preset: TimerPreset,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    Box(
+    val haptic = LocalHapticFeedback.current
+
+    Column(
         modifier = Modifier
             .fillMaxWidth(0.9f)
             .padding(vertical = 2.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(TimerColors.Surface)
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick
-            )
-    ) {
-        Card(
-            onClick = {},
-            backgroundPainter = CardDefaults.cardBackgroundPainter(
-                startBackgroundColor = TimerColors.Surface,
-                endBackgroundColor = TimerColors.Surface
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(4.dp)) {
-                Text(
-                    text = preset.name,
-                    fontSize = 13.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = TimerColors.TextPrimary
-                )
-                val info = buildString {
-                    append(formatTime(preset.totalSeconds))
-                    if (preset.finalSectorSeconds > 0) {
-                        append(" | fin: ${formatTime(preset.finalSectorSeconds)}")
-                    }
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onLongClick()
                 }
-                Text(
-                    text = info,
-                    fontSize = 11.sp,
-                    color = TimerColors.TextSecondary
-                )
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = preset.name,
+            fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = TimerColors.TextPrimary
+        )
+        val info = buildString {
+            append(formatTime(preset.totalSeconds))
+            if (preset.finalSectorSeconds > 0) {
+                append("  \u2022  fin: ${formatTime(preset.finalSectorSeconds)}")
             }
         }
+        Text(
+            text = info,
+            fontSize = 11.sp,
+            color = TimerColors.TextSecondary
+        )
     }
 }

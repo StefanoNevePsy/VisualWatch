@@ -41,6 +41,22 @@ fun CircleSweepAnimation(
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
         )
 
+        // Final sector: colored segment on the background track
+        if (finalSectorRatio > 0f) {
+            val finalSectorSweep = 360f * finalSectorRatio
+            val finalStartAngle = -90f + 360f * (1f - finalSectorRatio)
+            // Subtle colored arc on the track itself
+            drawArc(
+                color = TimerColors.FinalSectorDark.copy(alpha = 0.35f),
+                startAngle = finalStartAngle,
+                sweepAngle = finalSectorSweep,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
+            )
+        }
+
         // Main progress arc
         val sweepAngle = 360f * progress
         drawArc(
@@ -70,29 +86,22 @@ fun CircleSweepAnimation(
             style = Stroke(width = strokeWidth * 0.4f)
         )
 
-        // Final sector: perpendicular tick mark across the arc
+        // Final sector marker: small diamond/notch on the arc
         if (finalSectorRatio > 0f) {
             val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
             val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
             val cosA = cos(finalAngleRad).toFloat()
             val sinA = sin(finalAngleRad).toFloat()
 
-            // Tick mark perpendicular to the arc, crossing through the stroke
-            val innerR = radius - strokeWidth * 0.8f
-            val outerR = radius + strokeWidth * 0.8f
+            // Small notch crossing the arc
+            val innerR = radius - strokeWidth * 0.6f
+            val outerR = radius + strokeWidth * 0.6f
             drawLine(
-                color = TimerColors.FinalSector,
+                color = TimerColors.FinalSector.copy(alpha = 0.9f),
                 start = Offset(center.x + innerR * cosA, center.y + innerR * sinA),
                 end = Offset(center.x + outerR * cosA, center.y + outerR * sinA),
-                strokeWidth = 3f,
+                strokeWidth = 2.5f,
                 cap = StrokeCap.Round
-            )
-
-            // Small dot at the tick for visibility
-            drawCircle(
-                color = TimerColors.FinalSector,
-                radius = 4f,
-                center = Offset(center.x + outerR * cosA, center.y + outerR * sinA)
             )
         }
     }

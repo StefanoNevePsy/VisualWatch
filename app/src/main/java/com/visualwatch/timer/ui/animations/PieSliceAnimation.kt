@@ -36,11 +36,11 @@ fun PieSliceAnimation(
             center = center
         )
 
-        // Final sector pie slice (background hint)
+        // Final sector: subtle colored slice in the background
         if (finalSectorRatio > 0f) {
             val finalSweep = 360f * finalSectorRatio
             drawArc(
-                color = TimerColors.FinalSectorDark.copy(alpha = 0.25f),
+                color = TimerColors.FinalSectorDark.copy(alpha = 0.2f),
                 startAngle = -90f + 360f * (1f - finalSectorRatio),
                 sweepAngle = finalSweep,
                 useCenter = true,
@@ -60,24 +60,20 @@ fun PieSliceAnimation(
             size = arcSize
         )
 
-        // Final sector dividing line (from center to edge)
+        // Final sector dividing line: subtle radial line
         if (finalSectorRatio > 0f) {
             val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
             val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
-            val edgeX = center.x + radius * cos(finalAngleRad).toFloat()
-            val edgeY = center.y + radius * sin(finalAngleRad).toFloat()
+            val cosA = cos(finalAngleRad).toFloat()
+            val sinA = sin(finalAngleRad).toFloat()
+            // Line from 30% of radius to edge (not from dead center)
+            val innerR = radius * 0.15f
             drawLine(
-                color = TimerColors.FinalSector,
-                start = center,
-                end = Offset(edgeX, edgeY),
-                strokeWidth = 3f,
+                color = TimerColors.FinalSector.copy(alpha = 0.7f),
+                start = Offset(center.x + innerR * cosA, center.y + innerR * sinA),
+                end = Offset(center.x + radius * cosA, center.y + radius * sinA),
+                strokeWidth = 2f,
                 cap = StrokeCap.Round
-            )
-            // Dot at the edge
-            drawCircle(
-                color = TimerColors.FinalSector,
-                radius = 5f,
-                center = Offset(edgeX, edgeY)
             )
         }
 

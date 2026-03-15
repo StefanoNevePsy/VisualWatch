@@ -16,10 +16,12 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import com.visualwatch.timer.ui.theme.TimerColors
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Composable
 fun LiquidFillAnimation(
@@ -42,8 +44,6 @@ fun LiquidFillAnimation(
         ),
         label = "wavePhase"
     )
-
-    // Second wave with different speed for realism
     val wavePhase2 by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = (2 * Math.PI).toFloat(),
@@ -72,7 +72,6 @@ fun LiquidFillAnimation(
         )
 
         clipPath(circlePath, clipOp = ClipOp.Intersect) {
-            // Fill level: progress 1.0 = full, 0.0 = empty
             val fillHeight = size.height * progress
             val waterTop = size.height - fillHeight
 
@@ -96,12 +95,9 @@ fun LiquidFillAnimation(
             }
 
             // Liquid fill
-            drawPath(
-                path = wavePath,
-                color = mainColor.copy(alpha = 0.7f)
-            )
+            drawPath(path = wavePath, color = mainColor.copy(alpha = 0.7f))
 
-            // Darker bottom gradient effect
+            // Darker bottom gradient
             val bottomPath = Path().apply {
                 val gradientTop = waterTop + fillHeight * 0.4f
                 moveTo(0f, gradientTop)
@@ -110,30 +106,37 @@ fun LiquidFillAnimation(
                 lineTo(0f, size.height)
                 close()
             }
-            drawPath(
-                path = bottomPath,
-                color = darkColor.copy(alpha = 0.4f)
-            )
+            drawPath(path = bottomPath, color = darkColor.copy(alpha = 0.4f))
 
-            // Final sector line
+            // Final sector: dashed line clipped to the circle
             if (finalSectorRatio > 0f) {
                 val finalLineY = size.height - (size.height * finalSectorRatio)
+                // Calculate chord width at this Y inside the circle
+                val dy = finalLineY - center.y
+                val halfChord = if (dy.let { it * it } < radius * radius) {
+                    sqrt(radius * radius - dy * dy)
+                } else radius
+                val lineStart = center.x - halfChord
+                val lineEnd = center.x + halfChord
+
+                // Soft dashed line
                 drawLine(
-                    color = TimerColors.FinalSector.copy(alpha = 0.8f),
-                    start = Offset(center.x - radius, finalLineY),
-                    end = Offset(center.x + radius, finalLineY),
-                    strokeWidth = 3f
+                    color = TimerColors.FinalSector.copy(alpha = 0.6f),
+                    start = Offset(lineStart, finalLineY),
+                    end = Offset(lineEnd, finalLineY),
+                    strokeWidth = 2f,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f), 0f)
                 )
-                // Small label markers at edges
+                // Small markers at edges
                 drawCircle(
-                    color = TimerColors.FinalSector,
-                    radius = 4f,
-                    center = Offset(center.x - radius + 10f, finalLineY)
+                    color = TimerColors.FinalSector.copy(alpha = 0.7f),
+                    radius = 3f,
+                    center = Offset(lineStart + 4f, finalLineY)
                 )
                 drawCircle(
-                    color = TimerColors.FinalSector,
-                    radius = 4f,
-                    center = Offset(center.x + radius - 10f, finalLineY)
+                    color = TimerColors.FinalSector.copy(alpha = 0.7f),
+                    radius = 3f,
+                    center = Offset(lineEnd - 4f, finalLineY)
                 )
             }
         }
