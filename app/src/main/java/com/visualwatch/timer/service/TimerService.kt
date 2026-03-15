@@ -1,6 +1,5 @@
 package com.visualwatch.timer.service
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -70,13 +69,13 @@ class TimerService : Service() {
         this.finalSectorSeconds = finalSectorSec
         this.animationType = animation
 
-        val notification = createNotification(totalSec)
-        startForeground(NOTIFICATION_ID, notification)
-        setupOngoingActivity(notification)
+        val notificationBuilder = createNotificationBuilder(totalSec)
+        startForeground(NOTIFICATION_ID, notificationBuilder.build())
+        setupOngoingActivity(notificationBuilder)
         startCountDown(totalSec)
     }
 
-    private fun setupOngoingActivity(notification: Notification) {
+    private fun setupOngoingActivity(notificationBuilder: NotificationCompat.Builder) {
         val touchIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java).apply {
@@ -85,7 +84,7 @@ class TimerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val ongoingActivity = OngoingActivity.Builder(this, NOTIFICATION_ID, notification)
+        val ongoingActivity = OngoingActivity.Builder(this, NOTIFICATION_ID, notificationBuilder)
             .setStaticIcon(Icon.createWithResource(this, android.R.drawable.ic_menu_recent_history))
             .setTouchIntent(touchIntent)
             .setStatus(
@@ -154,7 +153,6 @@ class TimerService : Service() {
     fun stopTimer() {
         countDownTimer?.cancel()
         _timerState.value = TimerState()
-        OngoingActivity.recoverOngoingActivity(this)?.update(this, Status.EMPTY)
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
@@ -188,7 +186,7 @@ class TimerService : Service() {
         nm.createNotificationChannel(channel)
     }
 
-    private fun createNotification(remainingSeconds: Long): Notification {
+    private fun createNotificationBuilder(remainingSeconds: Long): NotificationCompat.Builder {
         val pendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java),
@@ -203,11 +201,10 @@ class TimerService : Service() {
             .setOngoing(true)
             .setSilent(true)
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
-            .build()
     }
 
     private fun updateNotification(remainingSeconds: Long) {
-        val notification = createNotification(remainingSeconds)
+        val notification = createNotificationBuilder(remainingSeconds).build()
         val nm = getSystemService(NotificationManager::class.java)
         nm.notify(NOTIFICATION_ID, notification)
     }

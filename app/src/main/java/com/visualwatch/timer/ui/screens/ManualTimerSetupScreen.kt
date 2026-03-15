@@ -22,6 +22,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.InlineSlider
 import androidx.wear.compose.material.InlineSliderDefaults
 import androidx.wear.compose.material.Text
@@ -65,19 +66,17 @@ fun ManualTimerSetupScreen(
         item {
             InlineSlider(
                 value = minutes,
-                onValueChange = {
-                    minutes = it
+                onValueChange = { newValue ->
+                    minutes = newValue
                     if (finalSectorMinutes > minutes) {
                         finalSectorMinutes = minutes / 4
                     }
                 },
-                valueRange = 1..120,
-                steps = 118,
+                valueProgression = 1..120,
+                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Diminuisci") },
+                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Aumenta") },
                 segmented = false,
-                modifier = Modifier.fillMaxWidth(0.85f),
-                colors = InlineSliderDefaults.colors(
-                    selectedBarColor = TimerColors.Green
-                )
+                modifier = Modifier.fillMaxWidth(0.85f)
             )
         }
 
@@ -93,14 +92,12 @@ fun ManualTimerSetupScreen(
         item {
             InlineSlider(
                 value = finalSectorMinutes,
-                onValueChange = { finalSectorMinutes = it },
-                valueRange = 0..minutes.coerceAtLeast(1),
-                steps = (minutes.coerceAtLeast(1) - 1).coerceAtLeast(0),
+                onValueChange = { newValue -> finalSectorMinutes = newValue },
+                valueProgression = 0..minutes.coerceAtLeast(1),
+                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Diminuisci") },
+                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Aumenta") },
                 segmented = false,
-                modifier = Modifier.fillMaxWidth(0.85f),
-                colors = InlineSliderDefaults.colors(
-                    selectedBarColor = TimerColors.FinalSector
-                )
+                modifier = Modifier.fillMaxWidth(0.85f)
             )
         }
 

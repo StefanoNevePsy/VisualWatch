@@ -1,5 +1,7 @@
 package com.visualwatch.timer.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.InlineSlider
 import androidx.wear.compose.material.InlineSliderDefaults
 import androidx.wear.compose.material.Text
@@ -72,8 +75,8 @@ fun EditPresetScreen(
         // Quick name presets
         item {
             val nameOptions = listOf("Seduta", "Sessione", "Pausa", "Attività")
-            androidx.compose.foundation.layout.Row(
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.fillMaxWidth(0.95f)
             ) {
                 nameOptions.forEach { n ->
@@ -102,20 +105,18 @@ fun EditPresetScreen(
         item {
             InlineSlider(
                 value = minutes,
-                onValueChange = {
-                    minutes = it
+                onValueChange = { newValue ->
+                    minutes = newValue
                     name = name.replace(Regex("\\d+min"), "${minutes}min")
                     if (finalSectorMinutes > minutes) {
                         finalSectorMinutes = minutes / 4
                     }
                 },
-                valueRange = 1..120,
-                steps = 118,
+                valueProgression = 1..120,
+                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Diminuisci") },
+                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Aumenta") },
                 segmented = false,
-                modifier = Modifier.fillMaxWidth(0.85f),
-                colors = InlineSliderDefaults.colors(
-                    selectedBarColor = TimerColors.Green
-                )
+                modifier = Modifier.fillMaxWidth(0.85f)
             )
         }
 
@@ -131,14 +132,12 @@ fun EditPresetScreen(
         item {
             InlineSlider(
                 value = finalSectorMinutes,
-                onValueChange = { finalSectorMinutes = it },
-                valueRange = 0..minutes.coerceAtLeast(1),
-                steps = (minutes.coerceAtLeast(1) - 1).coerceAtLeast(0),
+                onValueChange = { newValue -> finalSectorMinutes = newValue },
+                valueProgression = 0..minutes.coerceAtLeast(1),
+                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Diminuisci") },
+                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Aumenta") },
                 segmented = false,
-                modifier = Modifier.fillMaxWidth(0.85f),
-                colors = InlineSliderDefaults.colors(
-                    selectedBarColor = TimerColors.FinalSector
-                )
+                modifier = Modifier.fillMaxWidth(0.85f)
             )
         }
 
