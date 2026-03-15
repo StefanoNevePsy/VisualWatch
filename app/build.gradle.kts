@@ -1,11 +1,12 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.visualwatch.timer"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.visualwatch.timer"
@@ -39,47 +40,44 @@ android {
     buildFeatures {
         compose = true
     }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
-    }
 }
 
 dependencies {
+    // Compose BOM for version management
+    val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
+    implementation(composeBom)
+
     // Compose for Wear OS
-    val wearComposeVersion = "1.3.0"
+    val wearComposeVersion = "1.4.0"
     implementation("androidx.wear.compose:compose-material:$wearComposeVersion")
     implementation("androidx.wear.compose:compose-foundation:$wearComposeVersion")
     implementation("androidx.wear.compose:compose-navigation:$wearComposeVersion")
 
-    // Core Compose
-    implementation("androidx.compose.ui:ui:1.6.1")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.6.1")
-    implementation("androidx.compose.runtime:runtime:1.6.1")
-    implementation("androidx.compose.foundation:foundation:1.6.1")
+    // Core Compose (versions managed by BOM)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.runtime:runtime")
+    implementation("androidx.compose.foundation:foundation")
 
     // Activity Compose
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.activity:activity-compose:1.9.3")
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-service:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-service:2.8.7")
 
     // DataStore for preferences persistence
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Wear OS specific
     implementation("androidx.wear:wear:1.3.0")
 
-    // Ambient mode (Always-On Display) support
-    implementation("androidx.wear:wear-ongoing:1.0.0")
+    // Ongoing Activity (keeps timer visible on wrist raise)
+    implementation("androidx.wear:wear-ongoing:1.1.0")
 
     // Core KTX
-    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.core:core-ktx:1.15.0")
 
-    // JSON serialization for presets
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-
-    debugImplementation("androidx.compose.ui:ui-tooling:1.6.1")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 }

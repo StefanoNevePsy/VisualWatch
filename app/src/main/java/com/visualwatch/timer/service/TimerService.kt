@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Binder
 import android.os.CountDownTimer
 import android.os.IBinder
@@ -14,6 +15,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
+import androidx.wear.ongoing.OngoingActivity
+import androidx.wear.ongoing.Status
 import com.visualwatch.timer.R
 import com.visualwatch.timer.data.AnimationType
 import com.visualwatch.timer.data.TimerState
@@ -67,8 +70,32 @@ class TimerService : Service() {
         this.finalSectorSeconds = finalSectorSec
         this.animationType = animation
 
-        startForeground(NOTIFICATION_ID, createNotification(totalSec))
+        val notification = createNotification(totalSec)
+        startForeground(NOTIFICATION_ID, notification)
+        setupOngoingActivity(notification)
         startCountDown(totalSec)
+    }
+
+    private fun setupOngoingActivity(notification: Notification) {
+        val touchIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val ongoingActivity = OngoingActivity.Builder(this, NOTIFICATION_ID, notification)
+            .setStaticIcon(Icon.createWithResource(this, android.R.drawable.ic_menu_recent_history))
+            .setTouchIntent(touchIntent)
+            .setStatus(
+                Status.Builder()
+                    .addTemplate("Timer in corso")
+                    .build()
+            )
+            .build()
+
+        ongoingActivity.apply(this)
     }
 
     private fun startCountDown(seconds: Long) {
@@ -127,6 +154,7 @@ class TimerService : Service() {
     fun stopTimer() {
         countDownTimer?.cancel()
         _timerState.value = TimerState()
+        OngoingActivity.recoverOngoingActivity(this)?.update(this, Status.EMPTY)
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
