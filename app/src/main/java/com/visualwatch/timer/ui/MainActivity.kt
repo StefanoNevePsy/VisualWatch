@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
     private var timerService: TimerService? = null
     private var serviceBound = false
     private var isAmbient = mutableStateOf(false)
+    private var isTimerActive = mutableStateOf(false)
 
     // Fallback flow when service not yet bound
     private val fallbackTimerState = MutableStateFlow(TimerState())
@@ -55,24 +56,27 @@ class MainActivity : ComponentActivity() {
     private val ambientCallback = object : AmbientLifecycleObserver.AmbientLifecycleCallback {
         override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
             isAmbient.value = true
+            // In ambient mode, remove keep-screen-on to allow low-power display
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
         override fun onExitAmbient() {
             isAmbient.value = false
+            // Restore keep-screen-on when interactive and timer is active
+            if (isTimerActive.value) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
         }
 
         override fun onUpdateAmbient() {
-            // Called periodically in ambient mode
+            // Called periodically (~1/min) in ambient mode — UI recomposes via state
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Keep screen on while activity is visible
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        // Ambient mode support
+        // Ambient mode support — keeps activity alive when screen dims
         val ambientObserver = AmbientLifecycleObserver(this, ambientCallback)
         lifecycle.addObserver(ambientObserver)
 
@@ -164,6 +168,7 @@ class MainActivity : ComponentActivity() {
                             when {
                                 state.isFinished -> {
                                     service.stopTimer()
+                                    setTimerActive(false)
                                     navController.popBackStack()
                                 }
                                 state.isPaused -> service.resumeTimer()
@@ -174,10 +179,20 @@ class MainActivity : ComponentActivity() {
                     onLongPress = {
                         // Long press to stop and go back
                         timerService?.stopTimer()
+                        setTimerActive(false)
                         navController.popBackStack()
                     }
                 )
             }
+        }
+    }
+
+    private fun setTimerActive(active: Boolean) {
+        isTimerActive.value = active
+        if (active && !isAmbient.value) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else if (!active) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
 
@@ -188,6 +203,7 @@ class MainActivity : ComponentActivity() {
             finalSectorSec = preset.finalSectorSeconds,
             animation = preset.animationType
         )
+        setTimerActive(true)
     }
 
     private fun startTimerManual(totalMinutes: Int, finalSectorMinutes: Int, animation: AnimationType) {
@@ -197,6 +213,7 @@ class MainActivity : ComponentActivity() {
             finalSectorSec = finalSectorMinutes * 60L,
             animation = animation
         )
+        setTimerActive(true)
     }
 
     private fun startTimerService() {

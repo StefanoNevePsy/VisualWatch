@@ -10,6 +10,7 @@ import android.graphics.drawable.Icon
 import android.os.Binder
 import android.os.CountDownTimer
 import android.os.IBinder
+import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -28,6 +29,7 @@ class TimerService : Service() {
 
     private val binder = TimerBinder()
     private var countDownTimer: CountDownTimer? = null
+    private var wakeLock: PowerManager.WakeLock? = null
 
     private val _timerState = MutableStateFlow(TimerState())
     val timerState: StateFlow<TimerState> = _timerState.asStateFlow()
@@ -69,6 +71,7 @@ class TimerService : Service() {
         this.finalSectorSeconds = finalSectorSec
         this.animationType = animation
 
+        acquireWakeLock()
         val notificationBuilder = createNotificationBuilder(totalSec)
         startForeground(NOTIFICATION_ID, notificationBuilder.build())
         setupOngoingActivity(notificationBuilder)
@@ -153,6 +156,7 @@ class TimerService : Service() {
     fun stopTimer() {
         countDownTimer?.cancel()
         _timerState.value = TimerState()
+        releaseWakeLock()
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
@@ -229,8 +233,27 @@ class TimerService : Service() {
         else String.format("%02d:%02d", m, s)
     }
 
+    private fun acquireWakeLock() {
+        if (wakeLock == null) {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = pm.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "VisualWatch::TimerWakeLock"
+            )
+        }
+        wakeLock?.acquire(4 * 60 * 60 * 1000L) // Max 4 hours
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) it.release()
+        }
+        wakeLock = null
+    }
+
     override fun onDestroy() {
         countDownTimer?.cancel()
+        releaseWakeLock()
         super.onDestroy()
     }
 

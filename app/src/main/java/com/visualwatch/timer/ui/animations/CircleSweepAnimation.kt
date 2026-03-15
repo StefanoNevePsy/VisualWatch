@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.visualwatch.timer.ui.theme.TimerColors
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun CircleSweepAnimation(
@@ -39,26 +41,6 @@ fun CircleSweepAnimation(
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
         )
 
-        // Final sector indicator (thin outer ring)
-        if (finalSectorRatio > 0f) {
-            val finalSectorSweep = 360f * finalSectorRatio
-            drawArc(
-                color = TimerColors.FinalSectorDark.copy(alpha = 0.4f),
-                startAngle = -90f + 360f * (1f - finalSectorRatio),
-                sweepAngle = finalSectorSweep,
-                useCenter = false,
-                topLeft = Offset(
-                    center.x - radius - strokeWidth * 0.4f,
-                    center.y - radius - strokeWidth * 0.4f
-                ),
-                size = Size(
-                    (radius + strokeWidth * 0.4f) * 2,
-                    (radius + strokeWidth * 0.4f) * 2
-                ),
-                style = Stroke(width = strokeWidth * 0.3f)
-            )
-        }
-
         // Main progress arc
         val sweepAngle = 360f * progress
         drawArc(
@@ -87,5 +69,31 @@ fun CircleSweepAnimation(
             ),
             style = Stroke(width = strokeWidth * 0.4f)
         )
+
+        // Final sector: perpendicular tick mark across the arc
+        if (finalSectorRatio > 0f) {
+            val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
+            val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
+            val cosA = cos(finalAngleRad).toFloat()
+            val sinA = sin(finalAngleRad).toFloat()
+
+            // Tick mark perpendicular to the arc, crossing through the stroke
+            val innerR = radius - strokeWidth * 0.8f
+            val outerR = radius + strokeWidth * 0.8f
+            drawLine(
+                color = TimerColors.FinalSector,
+                start = Offset(center.x + innerR * cosA, center.y + innerR * sinA),
+                end = Offset(center.x + outerR * cosA, center.y + outerR * sinA),
+                strokeWidth = 3f,
+                cap = StrokeCap.Round
+            )
+
+            // Small dot at the tick for visibility
+            drawCircle(
+                color = TimerColors.FinalSector,
+                radius = 4f,
+                center = Offset(center.x + outerR * cosA, center.y + outerR * sinA)
+            )
+        }
     }
 }

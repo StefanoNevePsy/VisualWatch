@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.visualwatch.timer.ui.theme.TimerColors
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun PieSliceAnimation(
@@ -34,7 +36,7 @@ fun PieSliceAnimation(
             center = center
         )
 
-        // Final sector pie slice
+        // Final sector pie slice (background hint)
         if (finalSectorRatio > 0f) {
             val finalSweep = 360f * finalSectorRatio
             drawArc(
@@ -58,6 +60,27 @@ fun PieSliceAnimation(
             size = arcSize
         )
 
+        // Final sector dividing line (from center to edge)
+        if (finalSectorRatio > 0f) {
+            val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
+            val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
+            val edgeX = center.x + radius * cos(finalAngleRad).toFloat()
+            val edgeY = center.y + radius * sin(finalAngleRad).toFloat()
+            drawLine(
+                color = TimerColors.FinalSector,
+                start = center,
+                end = Offset(edgeX, edgeY),
+                strokeWidth = 3f,
+                cap = StrokeCap.Round
+            )
+            // Dot at the edge
+            drawCircle(
+                color = TimerColors.FinalSector,
+                radius = 5f,
+                center = Offset(edgeX, edgeY)
+            )
+        }
+
         // Darker inner overlay for depth
         val innerRadius = radius * 0.3f
         drawCircle(
@@ -77,8 +100,8 @@ fun PieSliceAnimation(
         // Progress edge line
         if (progress > 0f && progress < 1f) {
             val angle = Math.toRadians((-90.0 + sweepAngle))
-            val edgeX = center.x + radius * Math.cos(angle).toFloat()
-            val edgeY = center.y + radius * Math.sin(angle).toFloat()
+            val edgeX = center.x + radius * cos(angle).toFloat()
+            val edgeY = center.y + radius * sin(angle).toFloat()
             drawLine(
                 color = Color.White.copy(alpha = 0.6f),
                 start = center,

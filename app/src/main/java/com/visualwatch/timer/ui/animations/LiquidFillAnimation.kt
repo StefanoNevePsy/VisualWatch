@@ -1,17 +1,22 @@
 package com.visualwatch.timer.ui.animations
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import com.visualwatch.timer.ui.theme.TimerColors
 import kotlin.math.sin
@@ -25,7 +30,29 @@ fun LiquidFillAnimation(
 ) {
     val mainColor = TimerColors.progressColor(progress, isInFinalSector)
     val darkColor = TimerColors.progressColorDark(progress, isInFinalSector)
-    val wavePhase by remember { mutableFloatStateOf(0f) }
+
+    // Animate the wave phase continuously
+    val infiniteTransition = rememberInfiniteTransition(label = "wave")
+    val wavePhase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "wavePhase"
+    )
+
+    // Second wave with different speed for realism
+    val wavePhase2 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "wavePhase2"
+    )
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val center = Offset(size.width / 2, size.height / 2)
@@ -41,9 +68,7 @@ fun LiquidFillAnimation(
             color = Color(0xFF333333),
             radius = radius,
             center = center,
-            style = androidx.compose.ui.graphics.drawscope.Stroke(
-                width = size.minDimension * 0.02f
-            )
+            style = Stroke(width = size.minDimension * 0.02f)
         )
 
         clipPath(circlePath, clipOp = ClipOp.Intersect) {
@@ -51,15 +76,17 @@ fun LiquidFillAnimation(
             val fillHeight = size.height * progress
             val waterTop = size.height - fillHeight
 
-            // Wave effect on the surface
+            // Primary wave
+            val waveAmplitude = size.minDimension * 0.025f
             val wavePath = Path().apply {
                 moveTo(0f, waterTop)
-                val waveAmplitude = size.minDimension * 0.02f
-                val waveLength = size.width / 2
                 var x = 0f
                 while (x <= size.width) {
-                    val y = waterTop + waveAmplitude *
-                        sin((x / waveLength * 2 * Math.PI + wavePhase).toFloat())
+                    val wave1 = waveAmplitude *
+                        sin((x / size.width * 4 * Math.PI + wavePhase).toDouble()).toFloat()
+                    val wave2 = waveAmplitude * 0.5f *
+                        sin((x / size.width * 6 * Math.PI + wavePhase2).toDouble()).toFloat()
+                    val y = waterTop + wave1 + wave2
                     lineTo(x, y)
                     x += 2f
                 }
@@ -96,6 +123,17 @@ fun LiquidFillAnimation(
                     start = Offset(center.x - radius, finalLineY),
                     end = Offset(center.x + radius, finalLineY),
                     strokeWidth = 3f
+                )
+                // Small label markers at edges
+                drawCircle(
+                    color = TimerColors.FinalSector,
+                    radius = 4f,
+                    center = Offset(center.x - radius + 10f, finalLineY)
+                )
+                drawCircle(
+                    color = TimerColors.FinalSector,
+                    radius = 4f,
+                    center = Offset(center.x + radius - 10f, finalLineY)
                 )
             }
         }

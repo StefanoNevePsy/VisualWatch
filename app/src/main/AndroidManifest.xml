@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Keep screen on during timer -->
+    <!-- Keep CPU alive during timer (partial wake lock) -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Foreground service for timer -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -23,10 +23,16 @@
             android:name="com.google.android.wearable"
             android:required="false" />
 
+        <!-- Standalone Wear OS app (no phone companion needed) -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
             android:taskAffinity=""
+            android:resumeWhilePausing="true"
             android:theme="@android:style/Theme.DeviceDefault">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,6 +43,10 @@
         <service
             android:name=".service.TimerService"
             android:exported="false"
-            android:foregroundServiceType="specialUse" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="timer" />
+        </service>
     </application>
 </manifest>
