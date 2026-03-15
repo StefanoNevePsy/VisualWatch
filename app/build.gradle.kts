@@ -72,6 +72,7 @@ dependencies {
 
     // Wear OS specific
     implementation("androidx.wear:wear:1.3.0")
+    implementation("androidx.wear:wear-input:1.2.0-alpha02")
 
     // Ongoing Activity (keeps timer visible on wrist raise)
     implementation("androidx.wear:wear-ongoing:1.1.0")

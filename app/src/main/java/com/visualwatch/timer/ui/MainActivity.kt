@@ -127,8 +127,8 @@ class MainActivity : ComponentActivity() {
             // Manual timer setup
             composable("manual_setup") {
                 ManualTimerSetupScreen(
-                    onStartTimer = { totalMin, finalMin, animation ->
-                        startTimerManual(totalMin, finalMin, animation)
+                    onStartTimer = { totalSec, finalSec, animation ->
+                        startTimerDirect(totalSec, finalSec, animation)
                         navController.navigate("timer") {
                             popUpTo("presets")
                         }
@@ -206,11 +206,11 @@ class MainActivity : ComponentActivity() {
         setTimerActive(true)
     }
 
-    private fun startTimerManual(totalMinutes: Int, finalSectorMinutes: Int, animation: AnimationType) {
+    private fun startTimerDirect(totalSeconds: Long, finalSectorSeconds: Long, animation: AnimationType) {
         startTimerService()
         timerService?.startTimer(
-            totalSec = totalMinutes * 60L,
-            finalSectorSec = finalSectorMinutes * 60L,
+            totalSec = totalSeconds,
+            finalSectorSec = finalSectorSeconds,
             animation = animation
         )
         setTimerActive(true)

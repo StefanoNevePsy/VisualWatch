@@ -1,5 +1,10 @@
 package com.visualwatch.timer.ui.screens
 
+import android.app.RemoteInput
+import android.content.Intent
+import android.view.inputmethod.EditorInfo
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,8 +30,10 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.InlineSlider
 import androidx.wear.compose.material.InlineSliderDefaults
 import androidx.wear.compose.material.Text
+import androidx.wear.input.RemoteInputIntentHelper
 import com.visualwatch.timer.data.AnimationType
 import com.visualwatch.timer.data.TimerPreset
+import com.visualwatch.timer.ui.components.formatTime
 import com.visualwatch.timer.ui.theme.TimerColors
 
 @Composable
@@ -38,14 +45,56 @@ fun EditPresetScreen(
 ) {
     val isNew = preset == null
     var name by remember { mutableStateOf(preset?.name ?: "Nuovo preset") }
-    var minutes by remember { mutableIntStateOf(((preset?.totalSeconds ?: 3000L) / 60).toInt()) }
-    var finalSectorMinutes by remember {
-        mutableIntStateOf(((preset?.finalSectorSeconds ?: 600L) / 60).toInt())
-    }
+    var totalSeconds by remember { mutableLongStateOf(preset?.totalSeconds ?: 3000L) }
+    var finalSectorSeconds by remember { mutableLongStateOf(preset?.finalSectorSeconds ?: 600L) }
     var selectedAnimation by remember {
         mutableStateOf(preset?.animationType ?: AnimationType.CIRCLE_SWEEP)
     }
     val listState = rememberScalingLazyListState()
+
+    // Launcher for total duration input
+    val durationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        result.data?.let { data ->
+            val results = RemoteInput.getResultsFromIntent(data)
+            val text = results?.getCharSequence("time_input")?.toString() ?: return@let
+            parseTimeInput(text)?.let { seconds ->
+                totalSeconds = seconds
+                // Update name if it contains a time reference
+                name = name.replace(Regex("\\d+min"), "${totalSeconds / 60}min")
+                if (finalSectorSeconds > totalSeconds) {
+                    finalSectorSeconds = totalSeconds / 4
+                }
+            }
+        }
+    }
+
+    // Launcher for final sector input
+    val finalSectorLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        result.data?.let { data ->
+            val results = RemoteInput.getResultsFromIntent(data)
+            val text = results?.getCharSequence("time_input")?.toString() ?: return@let
+            parseTimeInput(text)?.let { seconds ->
+                finalSectorSeconds = seconds.coerceAtMost(totalSeconds)
+            }
+        }
+    }
+
+    // Name input launcher
+    val nameLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        result.data?.let { data ->
+            val results = RemoteInput.getResultsFromIntent(data)
+            val text = results?.getCharSequence("name_input")?.toString()
+            if (!text.isNullOrBlank()) {
+                name = text
+            }
+        }
+    }
 
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -61,14 +110,24 @@ fun EditPresetScreen(
             )
         }
 
-        // Name display (simplified for watch - shows current name)
+        // Name (tappable to edit via keyboard)
         item {
-            Text(
-                text = name,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+            TappableTimeLabel(
+                label = name,
+                seconds = -1, // special: don't show time
                 color = TimerColors.Green,
-                modifier = Modifier.padding(vertical = 4.dp)
+                onClick = {
+                    val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
+                    val remoteInput = RemoteInput.Builder("name_input")
+                        .setLabel("Nome preset")
+                        .build()
+                    remoteInput.extras.putInt(
+                        "android.remoteinput.editChoicesBeforeSending",
+                        EditorInfo.IME_ACTION_DONE
+                    )
+                    RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
+                    nameLauncher.launch(intent)
+                }
             )
         }
 
@@ -81,7 +140,7 @@ fun EditPresetScreen(
             ) {
                 nameOptions.forEach { n ->
                     Button(
-                        onClick = { name = "$n ${minutes}min" },
+                        onClick = { name = "$n ${totalSeconds / 60}min" },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = TimerColors.SurfaceLight
@@ -93,23 +152,27 @@ fun EditPresetScreen(
             }
         }
 
-        // Duration
+        // Duration: tappable label
         item {
-            Text(
-                text = "Durata: ${minutes} min",
-                fontSize = 13.sp,
+            TappableTimeLabel(
+                label = "Durata",
+                seconds = totalSeconds,
                 color = TimerColors.TextSecondary,
-                modifier = Modifier.padding(top = 4.dp)
+                onClick = {
+                    launchTimeInputForEdit(durationLauncher, "Durata (min o MM:SS)")
+                }
             )
         }
+        // Duration slider (in minutes)
         item {
+            val sliderMinutes = (totalSeconds / 60).toInt().coerceIn(1, 120)
             InlineSlider(
-                value = minutes,
+                value = sliderMinutes,
                 onValueChange = { newValue ->
-                    minutes = newValue
-                    name = name.replace(Regex("\\d+min"), "${minutes}min")
-                    if (finalSectorMinutes > minutes) {
-                        finalSectorMinutes = minutes / 4
+                    totalSeconds = newValue * 60L
+                    name = name.replace(Regex("\\d+min"), "${newValue}min")
+                    if (finalSectorSeconds > totalSeconds) {
+                        finalSectorSeconds = totalSeconds / 4
                     }
                 },
                 valueProgression = 1..120,
@@ -120,20 +183,25 @@ fun EditPresetScreen(
             )
         }
 
-        // Final sector
+        // Final sector: tappable label
         item {
-            Text(
-                text = "Settore finale: ${finalSectorMinutes} min",
-                fontSize = 13.sp,
+            TappableTimeLabel(
+                label = "Settore finale",
+                seconds = finalSectorSeconds,
                 color = TimerColors.FinalSector,
-                modifier = Modifier.padding(top = 4.dp)
+                onClick = {
+                    launchTimeInputForEdit(finalSectorLauncher, "Settore finale (min o MM:SS)")
+                }
             )
         }
+        // Final sector slider
         item {
+            val maxFinalMin = (totalSeconds / 60).toInt().coerceAtLeast(1)
+            val sliderFinalMin = (finalSectorSeconds / 60).toInt().coerceIn(0, maxFinalMin)
             InlineSlider(
-                value = finalSectorMinutes,
-                onValueChange = { newValue -> finalSectorMinutes = newValue },
-                valueProgression = 0..minutes.coerceAtLeast(1),
+                value = sliderFinalMin,
+                onValueChange = { newValue -> finalSectorSeconds = newValue * 60L },
+                valueProgression = 0..maxFinalMin,
                 decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Diminuisci") },
                 increaseIcon = { Icon(InlineSliderDefaults.Increase, "Aumenta") },
                 segmented = false,
@@ -157,8 +225,8 @@ fun EditPresetScreen(
                         TimerPreset(
                             id = preset?.id ?: java.util.UUID.randomUUID().toString(),
                             name = name,
-                            totalSeconds = minutes * 60L,
-                            finalSectorSeconds = finalSectorMinutes * 60L,
+                            totalSeconds = totalSeconds,
+                            finalSectorSeconds = finalSectorSeconds,
                             animationType = selectedAnimation
                         )
                     )
@@ -201,4 +269,20 @@ fun EditPresetScreen(
             }
         }
     }
+}
+
+private fun launchTimeInputForEdit(
+    launcher: androidx.activity.result.ActivityResultLauncher<Intent>,
+    label: String
+) {
+    val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
+    val remoteInput = RemoteInput.Builder("time_input")
+        .setLabel(label)
+        .build()
+    remoteInput.extras.putInt(
+        "android.remoteinput.editChoicesBeforeSending",
+        EditorInfo.IME_ACTION_DONE
+    )
+    RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
+    launcher.launch(intent)
 }
