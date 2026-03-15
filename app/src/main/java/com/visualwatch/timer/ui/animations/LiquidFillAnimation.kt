@@ -32,8 +32,8 @@ fun LiquidFillAnimation(
 ) {
     val mainColor = TimerColors.progressColor(progress, isInFinalSector)
     val darkColor = TimerColors.progressColorDark(progress, isInFinalSector)
+    val markerColor = TimerColors.finalSectorMarkerColor(progress, isInFinalSector)
 
-    // Animate the wave phase continuously
     val infiniteTransition = rememberInfiniteTransition(label = "wave")
     val wavePhase by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -58,7 +58,6 @@ fun LiquidFillAnimation(
         val center = Offset(size.width / 2, size.height / 2)
         val radius = size.minDimension / 2 * 0.9f
 
-        // Clip to circle
         val circlePath = Path().apply {
             addOval(Rect(center, radius))
         }
@@ -108,34 +107,33 @@ fun LiquidFillAnimation(
             }
             drawPath(path = bottomPath, color = darkColor.copy(alpha = 0.4f))
 
-            // Final sector: dashed line clipped to the circle
+            // Final sector: dashed line with dynamic color
             if (finalSectorRatio > 0f) {
                 val finalLineY = size.height - (size.height * finalSectorRatio)
-                // Calculate chord width at this Y inside the circle
                 val dy = finalLineY - center.y
-                val halfChord = if (dy.let { it * it } < radius * radius) {
+                val halfChord = if (dy * dy < radius * radius) {
                     sqrt(radius * radius - dy * dy)
                 } else radius
                 val lineStart = center.x - halfChord
                 val lineEnd = center.x + halfChord
 
-                // Soft dashed line
+                // Dashed line
                 drawLine(
-                    color = TimerColors.FinalSector.copy(alpha = 0.6f),
+                    color = markerColor.copy(alpha = 0.75f),
                     start = Offset(lineStart, finalLineY),
                     end = Offset(lineEnd, finalLineY),
-                    strokeWidth = 2f,
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f), 0f)
+                    strokeWidth = 3f,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 5f), 0f)
                 )
-                // Small markers at edges
+                // Edge dots
                 drawCircle(
-                    color = TimerColors.FinalSector.copy(alpha = 0.7f),
-                    radius = 3f,
+                    color = markerColor.copy(alpha = 0.8f),
+                    radius = 3.5f,
                     center = Offset(lineStart + 4f, finalLineY)
                 )
                 drawCircle(
-                    color = TimerColors.FinalSector.copy(alpha = 0.7f),
-                    radius = 3f,
+                    color = markerColor.copy(alpha = 0.8f),
+                    radius = 3.5f,
                     center = Offset(lineEnd - 4f, finalLineY)
                 )
             }

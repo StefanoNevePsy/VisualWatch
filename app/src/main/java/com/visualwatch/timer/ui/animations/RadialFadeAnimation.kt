@@ -19,6 +19,8 @@ fun RadialFadeAnimation(
 ) {
     val mainColor = TimerColors.progressColor(progress, isInFinalSector)
     val darkColor = TimerColors.progressColorDark(progress, isInFinalSector)
+    val markerColor = TimerColors.finalSectorMarkerColor(progress, isInFinalSector)
+    val zoneColor = TimerColors.finalSectorZoneColor(progress, isInFinalSector)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val center = Offset(size.width / 2, size.height / 2)
@@ -32,26 +34,28 @@ fun RadialFadeAnimation(
             center = center
         )
 
-        // Final sector ring: subtle dashed circle
+        // Final sector ring
         if (finalSectorRatio > 0f) {
             val finalRadius = maxRadius * finalSectorRatio
+            // Subtle filled zone
             drawCircle(
-                color = TimerColors.FinalSectorDark.copy(alpha = 0.15f),
+                color = zoneColor.copy(alpha = 0.12f),
                 radius = finalRadius,
                 center = center
             )
+            // Dashed ring
             drawCircle(
-                color = TimerColors.FinalSector.copy(alpha = 0.35f),
+                color = markerColor.copy(alpha = 0.5f),
                 radius = finalRadius,
                 center = center,
                 style = Stroke(
-                    width = 1.5f,
+                    width = 2.5f,
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 4f), 0f)
                 )
             )
         }
 
-        // Filled radial area (shrinks as time passes)
+        // Filled radial area
         if (currentRadius > 0f) {
             // Outer glow
             drawCircle(

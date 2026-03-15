@@ -22,6 +22,8 @@ fun CircleSweepAnimation(
 ) {
     val mainColor = TimerColors.progressColor(progress, isInFinalSector)
     val darkColor = TimerColors.progressColorDark(progress, isInFinalSector)
+    val markerColor = TimerColors.finalSectorMarkerColor(progress, isInFinalSector)
+    val zoneColor = TimerColors.finalSectorZoneColor(progress, isInFinalSector)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val strokeWidth = size.minDimension * 0.08f
@@ -45,9 +47,8 @@ fun CircleSweepAnimation(
         if (finalSectorRatio > 0f) {
             val finalSectorSweep = 360f * finalSectorRatio
             val finalStartAngle = -90f + 360f * (1f - finalSectorRatio)
-            // Subtle colored arc on the track itself
             drawArc(
-                color = TimerColors.FinalSectorDark.copy(alpha = 0.35f),
+                color = zoneColor.copy(alpha = 0.3f),
                 startAngle = finalStartAngle,
                 sweepAngle = finalSectorSweep,
                 useCenter = false,
@@ -86,21 +87,20 @@ fun CircleSweepAnimation(
             style = Stroke(width = strokeWidth * 0.4f)
         )
 
-        // Final sector marker: small diamond/notch on the arc
+        // Final sector marker: notch on the arc
         if (finalSectorRatio > 0f) {
             val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
             val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
             val cosA = cos(finalAngleRad).toFloat()
             val sinA = sin(finalAngleRad).toFloat()
 
-            // Small notch crossing the arc
-            val innerR = radius - strokeWidth * 0.6f
-            val outerR = radius + strokeWidth * 0.6f
+            val innerR = radius - strokeWidth * 0.7f
+            val outerR = radius + strokeWidth * 0.7f
             drawLine(
-                color = TimerColors.FinalSector.copy(alpha = 0.9f),
+                color = markerColor.copy(alpha = 0.85f),
                 start = Offset(center.x + innerR * cosA, center.y + innerR * sinA),
                 end = Offset(center.x + outerR * cosA, center.y + outerR * sinA),
-                strokeWidth = 2.5f,
+                strokeWidth = 3.5f,
                 cap = StrokeCap.Round
             )
         }

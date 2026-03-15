@@ -22,6 +22,8 @@ fun PieSliceAnimation(
 ) {
     val mainColor = TimerColors.progressColor(progress, isInFinalSector)
     val darkColor = TimerColors.progressColorDark(progress, isInFinalSector)
+    val markerColor = TimerColors.finalSectorMarkerColor(progress, isInFinalSector)
+    val zoneColor = TimerColors.finalSectorZoneColor(progress, isInFinalSector)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val center = Offset(size.width / 2, size.height / 2)
@@ -40,7 +42,7 @@ fun PieSliceAnimation(
         if (finalSectorRatio > 0f) {
             val finalSweep = 360f * finalSectorRatio
             drawArc(
-                color = TimerColors.FinalSectorDark.copy(alpha = 0.2f),
+                color = zoneColor.copy(alpha = 0.18f),
                 startAngle = -90f + 360f * (1f - finalSectorRatio),
                 sweepAngle = finalSweep,
                 useCenter = true,
@@ -60,19 +62,18 @@ fun PieSliceAnimation(
             size = arcSize
         )
 
-        // Final sector dividing line: subtle radial line
+        // Final sector radial line
         if (finalSectorRatio > 0f) {
             val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
             val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
             val cosA = cos(finalAngleRad).toFloat()
             val sinA = sin(finalAngleRad).toFloat()
-            // Line from 30% of radius to edge (not from dead center)
-            val innerR = radius * 0.15f
+            val innerR = radius * 0.12f
             drawLine(
-                color = TimerColors.FinalSector.copy(alpha = 0.7f),
+                color = markerColor.copy(alpha = 0.8f),
                 start = Offset(center.x + innerR * cosA, center.y + innerR * sinA),
                 end = Offset(center.x + radius * cosA, center.y + radius * sinA),
-                strokeWidth = 2f,
+                strokeWidth = 3f,
                 cap = StrokeCap.Round
             )
         }

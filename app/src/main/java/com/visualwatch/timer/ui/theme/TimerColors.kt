@@ -45,4 +45,25 @@ object TimerColors {
             else -> RedDark
         }
     }
+
+    // Lighter/brighter shade of the current progress color for the final sector marker
+    fun finalSectorMarkerColor(progress: Float, isInFinalSector: Boolean): Color {
+        if (isInFinalSector) return Color(0xFFFF80AB) // light pink
+        return when {
+            progress > 0.5f -> Color(0xFF81C784)  // light green
+            progress > 0.25f -> Color(0xFFFFD54F) // light yellow
+            progress > 0.1f -> Color(0xFFFFB74D)  // light orange
+            else -> Color(0xFFEF9A9A)             // light red
+        }
+    }
+
+    // Darker tint for the final sector background zone
+    fun finalSectorZoneColor(progress: Float, isInFinalSector: Boolean): Color {
+        if (isInFinalSector) return FinalSectorDark
+        return when {
+            progress > 0.5f -> GreenDark
+            progress > 0.25f -> YellowDark
+            else -> RedDark
+        }
+    }
 }
