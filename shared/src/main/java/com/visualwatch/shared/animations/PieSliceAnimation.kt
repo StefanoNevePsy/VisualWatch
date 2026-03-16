@@ -1,0 +1,103 @@
+package com.visualwatch.shared.animations
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.visualwatch.shared.theme.TimerColors
+import kotlin.math.cos
+import kotlin.math.sin
+
+@Composable
+fun PieSliceAnimation(
+    progress: Float,
+    isInFinalSector: Boolean,
+    finalSectorRatio: Float,
+    modifier: Modifier = Modifier
+) {
+    val mainColor = TimerColors.progressColor(progress, isInFinalSector)
+    val darkColor = TimerColors.progressColorDark(progress, isInFinalSector)
+    val markerColor = TimerColors.finalSectorMarkerColor(progress, isInFinalSector)
+    val zoneColor = TimerColors.finalSectorZoneColor(progress, isInFinalSector)
+
+    Canvas(modifier = modifier.fillMaxSize()) {
+        val center = Offset(size.width / 2, size.height / 2)
+        val radius = size.minDimension / 2 * 0.85f
+        val topLeft = Offset(center.x - radius, center.y - radius)
+        val arcSize = Size(radius * 2, radius * 2)
+
+        drawCircle(
+            color = Color(0xFF1A1A1A),
+            radius = radius,
+            center = center
+        )
+
+        if (finalSectorRatio > 0f) {
+            val finalSweep = 360f * finalSectorRatio
+            drawArc(
+                color = zoneColor.copy(alpha = 0.18f),
+                startAngle = -90f + 360f * (1f - finalSectorRatio),
+                sweepAngle = finalSweep,
+                useCenter = true,
+                topLeft = topLeft,
+                size = arcSize
+            )
+        }
+
+        val sweepAngle = 360f * progress
+        drawArc(
+            color = mainColor.copy(alpha = 0.65f),
+            startAngle = -90f,
+            sweepAngle = sweepAngle,
+            useCenter = true,
+            topLeft = topLeft,
+            size = arcSize
+        )
+
+        if (finalSectorRatio > 0f) {
+            val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
+            val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
+            val cosA = cos(finalAngleRad).toFloat()
+            val sinA = sin(finalAngleRad).toFloat()
+            val innerR = radius * 0.12f
+            drawLine(
+                color = markerColor.copy(alpha = 0.8f),
+                start = Offset(center.x + innerR * cosA, center.y + innerR * sinA),
+                end = Offset(center.x + radius * cosA, center.y + radius * sinA),
+                strokeWidth = 3f,
+                cap = StrokeCap.Round
+            )
+        }
+
+        val innerRadius = radius * 0.3f
+        drawCircle(
+            color = darkColor.copy(alpha = 0.2f),
+            radius = innerRadius,
+            center = center
+        )
+
+        drawCircle(
+            color = Color(0xFF444444),
+            radius = radius,
+            center = center,
+            style = Stroke(width = 2f, cap = StrokeCap.Round)
+        )
+
+        if (progress > 0f && progress < 1f) {
+            val angle = Math.toRadians((-90.0 + sweepAngle))
+            val edgeX = center.x + radius * cos(angle).toFloat()
+            val edgeY = center.y + radius * sin(angle).toFloat()
+            drawLine(
+                color = Color.White.copy(alpha = 0.6f),
+                start = center,
+                end = Offset(edgeX, edgeY),
+                strokeWidth = 2f
+            )
+        }
+    }
+}

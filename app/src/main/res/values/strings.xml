@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VisualWatch</string>
+    <string name="timer_notification_channel">Timer</string>
+    <string name="timer_running">Timer in corso</string>
+    <string name="timer_finished">Tempo scaduto!</string>
+</resources>
