@@ -1,11 +1,10 @@
-package com.visualwatch.timer.ui
+package com.visualwatch.shared.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.visualwatch.timer.data.AnimationType
-import com.visualwatch.timer.data.PresetRepository
-import com.visualwatch.timer.data.TimerPreset
+import com.visualwatch.shared.data.PresetRepository
+import com.visualwatch.shared.data.TimerPreset
 import kotlinx.coroutines.launch
 
 class TimerViewModel(application: Application) : AndroidViewModel(application) {

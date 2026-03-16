@@ -5,13 +5,12 @@ plugins {
 }
 
 android {
-    namespace = "com.visualwatch.timer"
+    namespace = "com.visualwatch.mobile"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.visualwatch.timer"
-        // Wear OS 3.0 = API 30 (Galaxy Watch 4 minimum)
-        minSdk = 30
+        applicationId = "com.visualwatch.mobile"
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -46,21 +45,19 @@ dependencies {
     // Shared module
     implementation(project(":shared"))
 
-    // Compose BOM for version management
+    // Compose BOM
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
     implementation(composeBom)
 
-    // Compose for Wear OS
-    val wearComposeVersion = "1.4.0"
-    implementation("androidx.wear.compose:compose-material:$wearComposeVersion")
-    implementation("androidx.wear.compose:compose-foundation:$wearComposeVersion")
-    implementation("androidx.wear.compose:compose-navigation:$wearComposeVersion")
-
-    // Core Compose (versions managed by BOM)
+    // Material3 for phone
+    implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.runtime:runtime")
     implementation("androidx.compose.foundation:foundation")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.8.5")
 
     // Activity Compose
     implementation("androidx.activity:activity-compose:1.9.3")
@@ -69,13 +66,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-service:2.8.7")
-
-    // Wear OS specific
-    implementation("androidx.wear:wear:1.3.0")
-    implementation("androidx.wear:wear-input:1.2.0-alpha02")
-
-    // Ongoing Activity (keeps timer visible on wrist raise)
-    implementation("androidx.wear:wear-ongoing:1.1.0")
 
     // Core KTX
     implementation("androidx.core:core-ktx:1.15.0")

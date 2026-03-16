@@ -1,10 +1,7 @@
-package com.visualwatch.timer.data
+package com.visualwatch.shared.data
 
 import java.util.UUID
 
-/**
- * A timer preset with total duration and optional "final sector" warning zone.
- */
 data class TimerPreset(
     val id: String = UUID.randomUUID().toString(),
     val name: String,

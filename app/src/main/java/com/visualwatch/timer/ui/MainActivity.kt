@@ -19,9 +19,10 @@ import androidx.wear.ambient.AmbientLifecycleObserver
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
-import com.visualwatch.timer.data.AnimationType
-import com.visualwatch.timer.data.TimerPreset
-import com.visualwatch.timer.data.TimerState
+import com.visualwatch.shared.data.AnimationType
+import com.visualwatch.shared.data.TimerPreset
+import com.visualwatch.shared.data.TimerState
+import com.visualwatch.shared.viewmodel.TimerViewModel
 import com.visualwatch.timer.service.TimerService
 import com.visualwatch.timer.ui.screens.ActiveTimerScreen
 import com.visualwatch.timer.ui.screens.EditPresetScreen
@@ -37,7 +38,6 @@ class MainActivity : ComponentActivity() {
     private var isAmbient = mutableStateOf(false)
     private var isTimerActive = mutableStateOf(false)
 
-    // Fallback flow when service not yet bound
     private val fallbackTimerState = MutableStateFlow(TimerState())
 
     private val serviceConnection = object : ServiceConnection {
@@ -56,31 +56,25 @@ class MainActivity : ComponentActivity() {
     private val ambientCallback = object : AmbientLifecycleObserver.AmbientLifecycleCallback {
         override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
             isAmbient.value = true
-            // In ambient mode, remove keep-screen-on to allow low-power display
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
         override fun onExitAmbient() {
             isAmbient.value = false
-            // Restore keep-screen-on when interactive and timer is active
             if (isTimerActive.value) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
         }
 
-        override fun onUpdateAmbient() {
-            // Called periodically (~1/min) in ambient mode — UI recomposes via state
-        }
+        override fun onUpdateAmbient() {}
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Ambient mode support — keeps activity alive when screen dims
         val ambientObserver = AmbientLifecycleObserver(this, ambientCallback)
         lifecycle.addObserver(ambientObserver)
 
-        // Bind to timer service
         val serviceIntent = Intent(this, TimerService::class.java)
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
@@ -100,7 +94,6 @@ class MainActivity : ComponentActivity() {
             navController = navController,
             startDestination = "presets"
         ) {
-            // Preset list (home)
             composable("presets") {
                 PresetListScreen(
                     presetsFlow = viewModel.presets,
@@ -124,7 +117,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            // Manual timer setup
             composable("manual_setup") {
                 ManualTimerSetupScreen(
                     onStartTimer = { totalSec, finalSec, animation ->
@@ -137,7 +129,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            // Edit/create preset
             composable("edit_preset") {
                 EditPresetScreen(
                     preset = editingPreset,
@@ -153,7 +144,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            // Active timer
             composable("timer") {
                 val timerStateFlow: StateFlow<TimerState> =
                     timerService?.timerState ?: fallbackTimerState
@@ -162,7 +152,6 @@ class MainActivity : ComponentActivity() {
                     timerStateFlow = timerStateFlow,
                     isAmbient = isAmbient.value,
                     onTap = {
-                        // Tap to pause/resume
                         timerService?.let { service ->
                             val state = service.timerState.value
                             when {
@@ -177,7 +166,6 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     onLongPress = {
-                        // Long press to stop and go back
                         timerService?.stopTimer()
                         setTimerActive(false)
                         navController.popBackStack()

@@ -1,4 +1,4 @@
-package com.visualwatch.timer.ui.animations
+package com.visualwatch.shared.animations
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,7 +9,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.visualwatch.timer.ui.theme.TimerColors
+import com.visualwatch.shared.theme.TimerColors
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -32,7 +32,6 @@ fun CircleSweepAnimation(
         val topLeft = Offset(center.x - radius, center.y - radius)
         val arcSize = Size(radius * 2, radius * 2)
 
-        // Background track
         drawArc(
             color = Color(0xFF333333),
             startAngle = -90f,
@@ -43,7 +42,6 @@ fun CircleSweepAnimation(
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
         )
 
-        // Final sector: colored segment on the background track
         if (finalSectorRatio > 0f) {
             val finalSectorSweep = 360f * finalSectorRatio
             val finalStartAngle = -90f + 360f * (1f - finalSectorRatio)
@@ -58,7 +56,6 @@ fun CircleSweepAnimation(
             )
         }
 
-        // Main progress arc
         val sweepAngle = 360f * progress
         drawArc(
             color = mainColor,
@@ -70,7 +67,6 @@ fun CircleSweepAnimation(
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
         )
 
-        // Inner glow
         drawArc(
             color = darkColor.copy(alpha = 0.3f),
             startAngle = -90f,
@@ -87,13 +83,11 @@ fun CircleSweepAnimation(
             style = Stroke(width = strokeWidth * 0.4f)
         )
 
-        // Final sector marker: notch on the arc
         if (finalSectorRatio > 0f) {
             val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
             val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
             val cosA = cos(finalAngleRad).toFloat()
             val sinA = sin(finalAngleRad).toFloat()
-
             val innerR = radius - strokeWidth * 0.7f
             val outerR = radius + strokeWidth * 0.7f
             drawLine(

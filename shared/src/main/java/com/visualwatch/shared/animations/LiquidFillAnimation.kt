@@ -1,4 +1,4 @@
-package com.visualwatch.timer.ui.animations
+package com.visualwatch.shared.animations
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
-import com.visualwatch.timer.ui.theme.TimerColors
+import com.visualwatch.shared.theme.TimerColors
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -62,7 +62,6 @@ fun LiquidFillAnimation(
             addOval(Rect(center, radius))
         }
 
-        // Circle border
         drawCircle(
             color = Color(0xFF333333),
             radius = radius,
@@ -74,7 +73,6 @@ fun LiquidFillAnimation(
             val fillHeight = size.height * progress
             val waterTop = size.height - fillHeight
 
-            // Primary wave
             val waveAmplitude = size.minDimension * 0.025f
             val wavePath = Path().apply {
                 moveTo(0f, waterTop)
@@ -93,10 +91,8 @@ fun LiquidFillAnimation(
                 close()
             }
 
-            // Liquid fill
             drawPath(path = wavePath, color = mainColor.copy(alpha = 0.7f))
 
-            // Darker bottom gradient
             val bottomPath = Path().apply {
                 val gradientTop = waterTop + fillHeight * 0.4f
                 moveTo(0f, gradientTop)
@@ -107,7 +103,6 @@ fun LiquidFillAnimation(
             }
             drawPath(path = bottomPath, color = darkColor.copy(alpha = 0.4f))
 
-            // Final sector: dashed line with dynamic color
             if (finalSectorRatio > 0f) {
                 val finalLineY = size.height - (size.height * finalSectorRatio)
                 val dy = finalLineY - center.y
@@ -117,7 +112,6 @@ fun LiquidFillAnimation(
                 val lineStart = center.x - halfChord
                 val lineEnd = center.x + halfChord
 
-                // Dashed line
                 drawLine(
                     color = markerColor.copy(alpha = 0.75f),
                     start = Offset(lineStart, finalLineY),
@@ -125,7 +119,6 @@ fun LiquidFillAnimation(
                     strokeWidth = 3f,
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 5f), 0f)
                 )
-                // Edge dots
                 drawCircle(
                     color = markerColor.copy(alpha = 0.8f),
                     radius = 3.5f,

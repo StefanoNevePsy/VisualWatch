@@ -1,4 +1,4 @@
-package com.visualwatch.timer.data
+package com.visualwatch.shared.data
 
 data class TimerState(
     val totalSeconds: Long = 0L,

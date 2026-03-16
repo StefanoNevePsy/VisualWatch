@@ -31,10 +31,11 @@ import androidx.wear.compose.material.InlineSlider
 import androidx.wear.compose.material.InlineSliderDefaults
 import androidx.wear.compose.material.Text
 import androidx.wear.input.RemoteInputIntentHelper
-import com.visualwatch.timer.data.AnimationType
-import com.visualwatch.timer.data.TimerPreset
-import com.visualwatch.timer.ui.components.formatTime
-import com.visualwatch.timer.ui.theme.TimerColors
+import com.visualwatch.shared.data.AnimationType
+import com.visualwatch.shared.data.TimerPreset
+import com.visualwatch.shared.theme.TimerColors
+import com.visualwatch.shared.util.formatTime
+import com.visualwatch.shared.util.parseTimeInput
 
 @Composable
 fun EditPresetScreen(
@@ -52,7 +53,6 @@ fun EditPresetScreen(
     }
     val listState = rememberScalingLazyListState()
 
-    // Launcher for total duration input
     val durationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -61,7 +61,6 @@ fun EditPresetScreen(
             val text = results?.getCharSequence("time_input")?.toString() ?: return@let
             parseTimeInput(text)?.let { seconds ->
                 totalSeconds = seconds
-                // Update name if it contains a time reference
                 name = name.replace(Regex("\\d+min"), "${totalSeconds / 60}min")
                 if (finalSectorSeconds > totalSeconds) {
                     finalSectorSeconds = totalSeconds / 4
@@ -70,7 +69,6 @@ fun EditPresetScreen(
         }
     }
 
-    // Launcher for final sector input
     val finalSectorLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -83,7 +81,6 @@ fun EditPresetScreen(
         }
     }
 
-    // Name input launcher
     val nameLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -110,11 +107,10 @@ fun EditPresetScreen(
             )
         }
 
-        // Name (tappable to edit via keyboard)
         item {
             TappableTimeLabel(
                 label = name,
-                seconds = -1, // special: don't show time
+                seconds = -1,
                 color = TimerColors.Green,
                 onClick = {
                     val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
@@ -131,7 +127,6 @@ fun EditPresetScreen(
             )
         }
 
-        // Quick name presets
         item {
             val nameOptions = listOf("Seduta", "Sessione", "Pausa", "Attività")
             Row(
@@ -152,7 +147,6 @@ fun EditPresetScreen(
             }
         }
 
-        // Duration: tappable label
         item {
             TappableTimeLabel(
                 label = "Durata",
@@ -163,7 +157,6 @@ fun EditPresetScreen(
                 }
             )
         }
-        // Duration slider (in minutes)
         item {
             val sliderMinutes = (totalSeconds / 60).toInt().coerceIn(1, 120)
             InlineSlider(
@@ -183,7 +176,6 @@ fun EditPresetScreen(
             )
         }
 
-        // Final sector: tappable label
         item {
             TappableTimeLabel(
                 label = "Settore finale",
@@ -194,7 +186,6 @@ fun EditPresetScreen(
                 }
             )
         }
-        // Final sector slider
         item {
             val maxFinalMin = (totalSeconds / 60).toInt().coerceAtLeast(1)
             val sliderFinalMin = (finalSectorSeconds / 60).toInt().coerceIn(0, maxFinalMin)
@@ -209,7 +200,6 @@ fun EditPresetScreen(
             )
         }
 
-        // Animation
         item {
             AnimationSelector(
                 selected = selectedAnimation,
@@ -217,7 +207,6 @@ fun EditPresetScreen(
             )
         }
 
-        // Save button
         item {
             Button(
                 onClick = {
@@ -247,7 +236,6 @@ fun EditPresetScreen(
             }
         }
 
-        // Delete button (only for existing presets)
         if (!isNew && onDelete != null) {
             item {
                 Button(

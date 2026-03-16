@@ -1,4 +1,4 @@
-package com.visualwatch.timer.data
+package com.visualwatch.shared.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore

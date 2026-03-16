@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.visualwatch.timer.data.TimerState
+import com.visualwatch.shared.data.TimerState
 import com.visualwatch.timer.ui.components.TimerDisplay
 import kotlinx.coroutines.flow.StateFlow
 

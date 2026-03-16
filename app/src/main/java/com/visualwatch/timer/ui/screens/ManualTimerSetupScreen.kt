@@ -36,50 +36,10 @@ import androidx.wear.compose.material.InlineSlider
 import androidx.wear.compose.material.InlineSliderDefaults
 import androidx.wear.compose.material.Text
 import androidx.wear.input.RemoteInputIntentHelper
-import com.visualwatch.timer.data.AnimationType
-import com.visualwatch.timer.ui.components.formatTime
-import com.visualwatch.timer.ui.theme.TimerColors
-
-/**
- * Parse user input string into total seconds.
- * Supported formats: "5" (5 min), "90" (90 min), "4:25" (4min 25sec), "1:30:00" (1h 30min)
- */
-fun parseTimeInput(input: String): Long? {
-    val trimmed = input.trim()
-    if (trimmed.isEmpty()) return null
-
-    val parts = trimmed.split(":")
-    return try {
-        when (parts.size) {
-            1 -> {
-                // Single number = minutes
-                val mins = parts[0].toLong()
-                if (mins in 1..600) mins * 60 else null
-            }
-            2 -> {
-                // MM:SS
-                val mins = parts[0].toLong()
-                val secs = parts[1].toLong()
-                if (secs in 0..59 && mins >= 0 && (mins * 60 + secs) in 1..36000) {
-                    mins * 60 + secs
-                } else null
-            }
-            3 -> {
-                // H:MM:SS
-                val hours = parts[0].toLong()
-                val mins = parts[1].toLong()
-                val secs = parts[2].toLong()
-                if (mins in 0..59 && secs in 0..59 && hours >= 0) {
-                    val total = hours * 3600 + mins * 60 + secs
-                    if (total in 1..36000) total else null
-                } else null
-            }
-            else -> null
-        }
-    } catch (_: NumberFormatException) {
-        null
-    }
-}
+import com.visualwatch.shared.data.AnimationType
+import com.visualwatch.shared.theme.TimerColors
+import com.visualwatch.shared.util.formatTime
+import com.visualwatch.shared.util.parseTimeInput
 
 @Composable
 fun ManualTimerSetupScreen(
@@ -91,7 +51,6 @@ fun ManualTimerSetupScreen(
     var selectedAnimation by remember { mutableStateOf(AnimationType.CIRCLE_SWEEP) }
     val listState = rememberScalingLazyListState()
 
-    // Launcher for total duration input
     val durationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -107,7 +66,6 @@ fun ManualTimerSetupScreen(
         }
     }
 
-    // Launcher for final sector input
     val finalSectorLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -135,7 +93,6 @@ fun ManualTimerSetupScreen(
             )
         }
 
-        // Duration: tappable label
         item {
             TappableTimeLabel(
                 label = "Durata",
@@ -146,7 +103,6 @@ fun ManualTimerSetupScreen(
                 }
             )
         }
-        // Duration slider (in minutes, for quick adjustments)
         item {
             val sliderMinutes = (totalSeconds / 60).toInt().coerceIn(1, 120)
             InlineSlider(
@@ -165,7 +121,6 @@ fun ManualTimerSetupScreen(
             )
         }
 
-        // Final sector: tappable label
         item {
             TappableTimeLabel(
                 label = "Settore finale",
@@ -176,7 +131,6 @@ fun ManualTimerSetupScreen(
                 }
             )
         }
-        // Final sector slider
         item {
             val maxFinalMin = (totalSeconds / 60).toInt().coerceAtLeast(1)
             val sliderFinalMin = (finalSectorSeconds / 60).toInt().coerceIn(0, maxFinalMin)
@@ -191,7 +145,6 @@ fun ManualTimerSetupScreen(
             )
         }
 
-        // Animation type
         item {
             Text(
                 text = "Animazione",
@@ -207,7 +160,6 @@ fun ManualTimerSetupScreen(
             )
         }
 
-        // Start button
         item {
             Button(
                 onClick = { onStartTimer(totalSeconds, finalSectorSeconds, selectedAnimation) },

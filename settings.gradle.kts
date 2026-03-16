@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "VisualWatch"
 include(":app")
+include(":shared")
+include(":mobile")

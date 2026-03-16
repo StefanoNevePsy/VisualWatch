@@ -27,9 +27,9 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Text
-import com.visualwatch.timer.data.TimerPreset
-import com.visualwatch.timer.ui.components.formatTime
-import com.visualwatch.timer.ui.theme.TimerColors
+import com.visualwatch.shared.data.TimerPreset
+import com.visualwatch.shared.theme.TimerColors
+import com.visualwatch.shared.util.formatTime
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -48,7 +48,6 @@ fun PresetListScreen(
         state = listState,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Title
         item {
             Text(
                 text = "VisualWatch",
@@ -59,7 +58,6 @@ fun PresetListScreen(
             )
         }
 
-        // Manual timer button
         item {
             Button(
                 onClick = onManualSetup,
@@ -78,7 +76,6 @@ fun PresetListScreen(
             }
         }
 
-        // Preset items
         items(presets, key = { it.id }) { preset ->
             PresetItem(
                 preset = preset,
@@ -87,7 +84,6 @@ fun PresetListScreen(
             )
         }
 
-        // Add preset button
         item {
             Button(
                 onClick = onAddPreset,

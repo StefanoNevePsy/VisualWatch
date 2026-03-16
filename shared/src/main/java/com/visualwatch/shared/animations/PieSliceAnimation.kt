@@ -1,4 +1,4 @@
-package com.visualwatch.timer.ui.animations
+package com.visualwatch.shared.animations
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,7 +9,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.visualwatch.timer.ui.theme.TimerColors
+import com.visualwatch.shared.theme.TimerColors
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -31,14 +31,12 @@ fun PieSliceAnimation(
         val topLeft = Offset(center.x - radius, center.y - radius)
         val arcSize = Size(radius * 2, radius * 2)
 
-        // Background
         drawCircle(
             color = Color(0xFF1A1A1A),
             radius = radius,
             center = center
         )
 
-        // Final sector: subtle colored slice in the background
         if (finalSectorRatio > 0f) {
             val finalSweep = 360f * finalSectorRatio
             drawArc(
@@ -51,7 +49,6 @@ fun PieSliceAnimation(
             )
         }
 
-        // Main pie fill
         val sweepAngle = 360f * progress
         drawArc(
             color = mainColor.copy(alpha = 0.65f),
@@ -62,7 +59,6 @@ fun PieSliceAnimation(
             size = arcSize
         )
 
-        // Final sector radial line
         if (finalSectorRatio > 0f) {
             val finalAngleDeg = -90f + 360f * (1f - finalSectorRatio)
             val finalAngleRad = Math.toRadians(finalAngleDeg.toDouble())
@@ -78,7 +74,6 @@ fun PieSliceAnimation(
             )
         }
 
-        // Darker inner overlay for depth
         val innerRadius = radius * 0.3f
         drawCircle(
             color = darkColor.copy(alpha = 0.2f),
@@ -86,7 +81,6 @@ fun PieSliceAnimation(
             center = center
         )
 
-        // Border
         drawCircle(
             color = Color(0xFF444444),
             radius = radius,
@@ -94,7 +88,6 @@ fun PieSliceAnimation(
             style = Stroke(width = 2f, cap = StrokeCap.Round)
         )
 
-        // Progress edge line
         if (progress > 0f && progress < 1f) {
             val angle = Math.toRadians((-90.0 + sweepAngle))
             val edgeX = center.x + radius * cos(angle).toFloat()
