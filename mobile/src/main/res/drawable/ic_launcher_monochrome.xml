@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Timer circle outline -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,24a30,30 0,1 0,0 60a30,30 0,1 0,0 -60zM54,78a24,24 0,1 1,0 -48a24,24 0,1 1,0 48z" />
+    <!-- Hour hand (vertical) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M53,34L55,34L55,55L53,55z" />
+    <!-- Minute hand (horizontal) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,54L70,54L70,56L54,56z" />
+    <!-- Top button -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M50,20L58,20L58,24L50,24z" />
+</vector>
