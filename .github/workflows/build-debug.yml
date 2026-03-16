@@ -1,4 +1,4 @@
-name: Build Debug APK
+name: Build Debug APKs
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build Wear OS Debug APK
+    name: Build Debug APKs
     runs-on: ubuntu-latest
 
     steps:
@@ -30,13 +30,21 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Build debug APK
+      - name: Build debug APKs
         run: gradle assembleDebug
 
-      - name: Upload debug APK
+      - name: Upload Wear OS APK
         uses: actions/upload-artifact@v4
         with:
-          name: VisualWatch-debug
+          name: VisualWatch-WearOS-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload Mobile APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VisualWatch-Mobile-debug
+          path: mobile/build/outputs/apk/debug/mobile-debug.apk
           retention-days: 30
           if-no-files-found: error
